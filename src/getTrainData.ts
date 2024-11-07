@@ -130,19 +130,21 @@ export async function getTrainData(): Promise<string> {
     await firstHour();
     await secondHour();
     trainList.sort();
-    const resultFirstHalf = "Die nächsten S-Bahnen Richtung Stuttgart sind: \n";
+    const resultFirstHalf: string = "Die nächsten S-Bahnen Richtung Stuttgart sind: \n";
     const firstFiveTrains: string[] = trainList.splice(0, 5);
     let firstFiveTrainsOutput: string[] = [];
     for (let i of firstFiveTrains) {
         let departureHour: string = i[0] + i[1];
         let departureMinute: string = i[2] + i[3];
+        let trainLine: string = i[5] + i[6];
         // console.log(departureHour);
         // console.log(departureMinute);
+        // console.log(trainLine);
         i = i.substring(4, i.length);
-        firstFiveTrainsOutput.push(departureHour + ":" + departureMinute + " Uhr" + i);
+        i = i.substring(3, i.length);
+        // console.log(i);
+        firstFiveTrainsOutput.push(trainLine + " " + departureHour + ":" + departureMinute + " Uhr Richtung" + i);
     }
-
-    const resultSecondHalf = firstFiveTrainsOutput.join("\n");
-    console.log(resultFirstHalf + resultSecondHalf);
+    const resultSecondHalf: string = firstFiveTrainsOutput.join("\n");
     return resultFirstHalf + resultSecondHalf;
 }
