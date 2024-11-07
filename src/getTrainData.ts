@@ -38,10 +38,21 @@ export async function getTrainData(): Promise<string> {
             s: TimetableEntry[];
         };
     }
-    const date: Date = new Date();
-    // const date: Date = new Date("2024-11-05T10:52:00");
+    // const date: Date = new Date();
+    const date: Date = new Date("2024-11-11T10:52:00");
     // console.log(date);
+    /*
 
+    
+    function für date in yymmdd
+    eine function für firsthour und secondhour mit parametern
+
+    ***
+    const array: string[] = [].filter(isInTheFuture).filter(isSbahn).filter(isArrivingInStuttgart); 
+    ***
+
+
+    */
     let minutes: number = date.getMinutes();
     let year: number = date.getFullYear();
     let month: number = date.getMonth() + 1;
@@ -66,7 +77,7 @@ export async function getTrainData(): Promise<string> {
             day.toString() +
             "/" +
             hour.toString();
-
+        console.log(fetchLink);
         try {
             const response = await fetch(fetchLink, APIOptions);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
