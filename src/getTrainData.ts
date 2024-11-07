@@ -92,6 +92,7 @@ export async function getTrainData(): Promise<string> {
             throw error;
         }
     }
+
     async function secondHour() {
         hour++;
         const fetchLink: string =
@@ -126,7 +127,7 @@ export async function getTrainData(): Promise<string> {
             throw error;
         }
     }
-    const enter: string = "\n";
+
     await firstHour();
     await secondHour();
     trainList.sort();
