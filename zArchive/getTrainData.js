@@ -56,11 +56,11 @@ async function getTrainData() {
         const output = parser.parse(body);
         let trainList = [];
         for (let i of output.timetable.s) {
-            if (minutes >= Number(i.dp["@_pt"].substr(i.dp["@_pt"].length - 2)) && testNumber === 0) {
+            if (minutes >= Number(i.dp["@_pt"].substring(i.dp["@_pt"].length - 2)) && testNumber === 0) {
                 continue;
             }
             if (i.tl["@_c"] === "S" && i.dp["@_ppth"].includes("Stuttgart Hbf")) {
-                let time = i.dp["@_pt"].substr(i.dp["@_pt"].length - 4);
+                let time = i.dp["@_pt"].substring(i.dp["@_pt"].length - 4);
                 let train = i.tl["@_c"] + i.dp["@_l"];
                 let stops = i.dp["@_ppth"].split("|");
                 // console.log(stops);

@@ -47,13 +47,6 @@ export async function getTrainData(): Promise<string> {
     let month: number = date.getMonth() + 1;
     let day: number = date.getDate();
     let hour: number = date.getHours();
-
-    let testNumber: number = 0;
-    if (minutes > 39) {
-        hour++;
-        testNumber++;
-    }
-
     let zero: string = "";
 
     if (month.toString().length === 1) {
@@ -61,55 +54,95 @@ export async function getTrainData(): Promise<string> {
     } else if (day.toString().length) {
         zero = "0";
     }
+    let trainList: string[] = [];
 
-    const fetchLink: string =
-        "https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1/plan/08000235/" +
-        year.toString()[2] +
-        year.toString()[3] +
-        month.toString() +
-        zero +
-        day.toString() +
-        "/" +
-        hour.toString();
+    async function firstHour() {
+        const fetchLink: string =
+            "https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1/plan/08000235/" +
+            year.toString()[2] +
+            year.toString()[3] +
+            month.toString() +
+            zero +
+            day.toString() +
+            "/" +
+            hour.toString();
 
-    try {
-        const response = await fetch(fetchLink, APIOptions);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        try {
+            const response = await fetch(fetchLink, APIOptions);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-        const body = await response.text();
-        const parser = new XMLParser(options);
-        const output: Timetable = parser.parse(body);
+            const body = await response.text();
+            const parser = new XMLParser(options);
+            const output: Timetable = parser.parse(body);
 
-        let trainList: string[] = [];
-
-        for (let i of output.timetable.s) {
-            if (minutes > Number(i.dp["@_pt"].substr(i.dp["@_pt"].length - 2)) && testNumber === 0) {
-                continue;
+            for (let i of output.timetable.s) {
+                if (minutes > Number(i.dp["@_pt"].substring(i.dp["@_pt"].length - 2))) {
+                    continue;
+                }
+                if (i.tl["@_c"] === "S" && i.dp["@_ppth"].includes("Stuttgart Hbf")) {
+                    let time = i.dp["@_pt"].substring(i.dp["@_pt"].length - 4);
+                    let train = i.tl["@_c"] + i.dp["@_l"];
+                    let stops: string[] = i.dp["@_ppth"].split("|");
+                    // console.log(stops);
+                    trainList.push(time + " " + train + " " + stops[stops.length - 1]);
+                }
             }
-            if (i.tl["@_c"] === "S" && i.dp["@_ppth"].includes("Stuttgart Hbf")) {
-                let time = i.dp["@_pt"].substr(i.dp["@_pt"].length - 4);
-                let train = i.tl["@_c"] + i.dp["@_l"];
-                let stops: string[] = i.dp["@_ppth"].split("|");
-                // console.log(stops);
-                trainList.push(time + " " + train + " " + stops[stops.length - 1]);
-            }
+        } catch (error) {
+            console.error("Error fetching train data:", error);
+            throw error;
         }
-
-        trainList.sort();
-        let resultFirstHalf = "Die nächsten S-Bahnen richtung Stuttgart sind: \n";
-        let resultSecondHalf = trainList.join("\n");
-
-        return resultFirstHalf + resultSecondHalf;
-    } catch (error) {
-        console.error("Error fetching train data:", error);
-        throw error;
     }
-}
+    async function secondHour() {
+        hour++;
+        const fetchLink: string =
+            "https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1/plan/08000235/" +
+            year.toString()[2] +
+            year.toString()[3] +
+            month.toString() +
+            zero +
+            day.toString() +
+            "/" +
+            hour.toString();
 
-// getTrainData()
-//     .then((result) => {
-//         console.log(result);
-//     })
-//     .catch((error) => {
-//         console.error(error);
-//     });
+        try {
+            const response = await fetch(fetchLink, APIOptions);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+            const body = await response.text();
+            const parser = new XMLParser(options);
+            const output: Timetable = parser.parse(body);
+
+            for (let i of output.timetable.s) {
+                if (i.tl["@_c"] === "S" && i.dp["@_ppth"].includes("Stuttgart Hbf")) {
+                    let time = i.dp["@_pt"].substring(i.dp["@_pt"].length - 4);
+                    let train = i.tl["@_c"] + i.dp["@_l"];
+                    let stops: string[] = i.dp["@_ppth"].split("|");
+                    // console.log(stops);
+                    trainList.push(time + " " + train + " " + stops[stops.length - 1]);
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching train data:", error);
+            throw error;
+        }
+    }
+    const enter: string = "\n";
+    await firstHour();
+    await secondHour();
+    trainList.sort();
+    const resultFirstHalf = "Die nächsten S-Bahnen Richtung Stuttgart sind: \n";
+    const firstFiveTrains: string[] = trainList.splice(0, 5);
+    let firstFiveTrainsOutput: string[] = [];
+    for (let i of firstFiveTrains) {
+        let departureHour: string = i[0] + i[1];
+        let departureMinute: string = i[2] + i[3];
+        // console.log(departureHour);
+        // console.log(departureMinute);
+        i = i.substring(4, i.length);
+        firstFiveTrainsOutput.push(departureHour + ":" + departureMinute + " Uhr" + i);
+    }
+
+    const resultSecondHalf = firstFiveTrainsOutput.join("\n");
+    console.log(resultFirstHalf + resultSecondHalf);
+    return resultFirstHalf + resultSecondHalf;
+}
