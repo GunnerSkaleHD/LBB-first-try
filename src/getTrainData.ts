@@ -1,7 +1,7 @@
 import("node-fetch");
 import { XMLParser } from "fast-xml-parser";
 
-export async function getTrainData(): Promise<string> {
+export async function getTrainData() {
     const APIOptions = {
         method: "GET",
         headers: {
@@ -38,46 +38,45 @@ export async function getTrainData(): Promise<string> {
             s: TimetableEntry[];
         };
     }
-    // const date: Date = new Date();
-    const date: Date = new Date("2024-11-11T10:52:00");
-    // console.log(date);
-    /*
 
-    
-    function für date in yymmdd
-    eine function für firsthour und secondhour mit parametern
+    function formatDate(date: Date, secondRequest: boolean) {
+        let year: number = date.getFullYear();
+        let month: number = date.getMonth() + 1;
+        let day: number = date.getDate();
+        let hour: number = date.getHours();
+        let monthZero: string = "";
+        let dayZero: string = "";
+        let hourZero: string = "";
 
-    ***
-    const array: string[] = [].filter(isInTheFuture).filter(isSbahn).filter(isArrivingInStuttgart); 
-    ***
+        if (secondRequest) {
+            hour++;
+        }
+        if (month.toString().length === 1) {
+            monthZero = "0";
+        }
+        if (day.toString().length === 1) {
+            dayZero = "0";
+        }
+        if (hour.toString().length === 1) {
+            hourZero = "0";
+        }
 
-
-    */
-    let minutes: number = date.getMinutes();
-    let year: number = date.getFullYear();
-    let month: number = date.getMonth() + 1;
-    let day: number = date.getDate();
-    let hour: number = date.getHours();
-    let zero: string = "";
-
-    if (month.toString().length === 1) {
-        zero = "0";
-    } else if (day.toString().length) {
-        zero = "0";
+        return year.toString()[2] + year.toString()[3] + monthZero + month.toString() + dayZero + day.toString() + "/" + hourZero + hour.toString();
     }
-    let trainList: string[] = [];
 
-    async function firstHour() {
-        const fetchLink: string =
-            "https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1/plan/08000235/" +
-            year.toString()[2] +
-            year.toString()[3] +
-            month.toString() +
-            zero +
-            day.toString() +
-            "/" +
-            hour.toString();
-        console.log(fetchLink);
+    const presentDate: Date = new Date();
+
+    interface train {
+        departureTime: string;
+        trainLine: string;
+        trainStops: string[];
+        trainFinalStop: string;
+    }
+
+    let trainList: train[] = [];
+
+    async function getTrainList(fetchTime: string) {
+        const fetchLink: string = "https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1/plan/08000235/" + fetchTime;
         try {
             const response = await fetch(fetchLink, APIOptions);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -86,77 +85,74 @@ export async function getTrainData(): Promise<string> {
             const parser = new XMLParser(options);
             const output: Timetable = parser.parse(body);
 
-            for (let i of output.timetable.s) {
-                if (minutes > Number(i.dp["@_pt"].substring(i.dp["@_pt"].length - 2))) {
-                    continue;
-                }
-                if (i.tl["@_c"] === "S" && i.dp["@_ppth"].includes("Stuttgart Hbf")) {
-                    let time = i.dp["@_pt"].substring(i.dp["@_pt"].length - 4);
-                    let train = i.tl["@_c"] + i.dp["@_l"];
-                    let stops: string[] = i.dp["@_ppth"].split("|");
-                    // console.log(stops);
-                    trainList.push(time + " " + train + " " + stops[stops.length - 1]);
-                }
+            const departureInfo: string = "@_pt";
+            const trainLineType: string = "@_c";
+            const trainLineNumber: string = "@_l";
+            const scheduledStops: string = "@_ppth";
+
+            for (let trainInfo of output.timetable.s) {
+                let departureTime = trainInfo.dp[departureInfo].substring(trainInfo.dp[departureInfo].length - 4);
+                let trainLine = trainInfo.tl[trainLineType] + trainInfo.dp[trainLineNumber];
+                let trainStops: string[] = trainInfo.dp[scheduledStops].split("|");
+                let trainFinalStop: string = trainStops[trainStops.length - 1];
+                let certainTrain: train = {
+                    departureTime: departureTime,
+                    trainLine: trainLine,
+                    trainStops: trainStops,
+                    trainFinalStop: trainFinalStop,
+                };
+
+                trainList.push(certainTrain);
             }
+            trainList.sort(function (train1, train2) {
+                return Number(train1.departureTime) - Number(train2.departureTime);
+            });
         } catch (error) {
             console.error("Error fetching train data:", error);
             throw error;
         }
     }
 
-    async function secondHour() {
-        hour++;
-        const fetchLink: string =
-            "https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1/plan/08000235/" +
-            year.toString()[2] +
-            year.toString()[3] +
-            month.toString() +
-            zero +
-            day.toString() +
-            "/" +
-            hour.toString();
+    await getTrainList(formatDate(presentDate, false));
+    await getTrainList(formatDate(presentDate, true));
 
-        try {
-            const response = await fetch(fetchLink, APIOptions);
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-            const body = await response.text();
-            const parser = new XMLParser(options);
-            const output: Timetable = parser.parse(body);
-
-            for (let i of output.timetable.s) {
-                if (i.tl["@_c"] === "S" && i.dp["@_ppth"].includes("Stuttgart Hbf")) {
-                    let time = i.dp["@_pt"].substring(i.dp["@_pt"].length - 4);
-                    let train = i.tl["@_c"] + i.dp["@_l"];
-                    let stops: string[] = i.dp["@_ppth"].split("|");
-                    // console.log(stops);
-                    trainList.push(time + " " + train + " " + stops[stops.length - 1]);
-                }
-            }
-        } catch (error) {
-            console.error("Error fetching train data:", error);
-            throw error;
+    function isAnSBahn(train: train): boolean {
+        return train.trainLine[0] === "S";
+    }
+    function isTowardsStuttgart(train: train): boolean {
+        return train.trainFinalStop === "Stuttgart Schwabstr.";
+    }
+    function isInTheFuture(train: train): boolean {
+        const minutes: number = presentDate.getMinutes();
+        const hour: number = presentDate.getHours();
+        if (Number(train.departureTime[0] + train.departureTime[1]) === hour + 1) {
+            return true;
+        } else {
+            return (
+                minutes < Number(train.departureTime[2] + train.departureTime[3]) && hour === Number(train.departureTime[0] + train.departureTime[1])
+            );
         }
     }
 
-    await firstHour();
-    await secondHour();
-    trainList.sort();
+    function makeTrainToString(train: train): string {
+        return (
+            train.trainLine +
+            " " +
+            train.departureTime[0] +
+            train.departureTime[1] +
+            ":" +
+            train.departureTime[2] +
+            train.departureTime[3] +
+            " Uhr Richtung " +
+            train.trainFinalStop
+        );
+    }
+
+    trainList = trainList.filter(isAnSBahn).filter(isTowardsStuttgart).filter(isInTheFuture);
+
+    const resultTrainList: string[] = trainList.map((train) => makeTrainToString(train));
+    const resultSecondHalf: string = resultTrainList.splice(0, 5).join("\n");
     const resultFirstHalf: string = "Die nächsten S-Bahnen Richtung Stuttgart sind: \n";
-    const firstFiveTrains: string[] = trainList.splice(0, 5);
-    let firstFiveTrainsOutput: string[] = [];
-    for (let i of firstFiveTrains) {
-        let departureHour: string = i[0] + i[1];
-        let departureMinute: string = i[2] + i[3];
-        let trainLine: string = i[5] + i[6];
-        // console.log(departureHour);
-        // console.log(departureMinute);
-        // console.log(trainLine);
-        i = i.substring(4, i.length);
-        i = i.substring(3, i.length);
-        // console.log(i);
-        firstFiveTrainsOutput.push(trainLine + " " + departureHour + ":" + departureMinute + " Uhr Richtung" + i);
-    }
-    const resultSecondHalf: string = firstFiveTrainsOutput.join("\n");
+
     return resultFirstHalf + resultSecondHalf;
 }
