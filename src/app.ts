@@ -1,5 +1,5 @@
 import { App } from "@slack/bolt";
-import { getTrainData } from "./getTrainData";
+import { getTrainData } from "./newTrainData";
 import "dotenv/config";
 
 // Initializes your app with your bot token and signing secret
