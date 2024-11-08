@@ -75,8 +75,8 @@ export async function getTrainData() {
 
     let trainList: train[] = [];
 
-    async function getTrainList(fetchTime: string) {
-        const fetchLink: string = "https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1/plan/08000235/" + fetchTime;
+    async function getTrainList(formatedDateAndTime: string) {
+        const fetchLink: string = "https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1/plan/08000235/" + formatedDateAndTime;
         try {
             const response = await fetch(fetchLink, APIOptions);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -91,22 +91,20 @@ export async function getTrainData() {
             const scheduledStops: string = "@_ppth";
 
             for (let trainInfo of output.timetable.s) {
-                let departureTime = trainInfo.dp[departureInfo].substring(trainInfo.dp[departureInfo].length - 4);
-                let trainLine = trainInfo.tl[trainLineType] + trainInfo.dp[trainLineNumber];
+                let departureTime: string = trainInfo.dp[departureInfo].substring(trainInfo.dp[departureInfo].length - 4);
+                let trainLine: string = trainInfo.tl[trainLineType] + trainInfo.dp[trainLineNumber];
                 let trainStops: string[] = trainInfo.dp[scheduledStops].split("|");
                 let trainFinalStop: string = trainStops[trainStops.length - 1];
-                let certainTrain: train = {
+
+                let currentTrain: train = {
                     departureTime: departureTime,
                     trainLine: trainLine,
                     trainStops: trainStops,
                     trainFinalStop: trainFinalStop,
                 };
 
-                trainList.push(certainTrain);
+                trainList.push(currentTrain);
             }
-            trainList.sort(function (train1, train2) {
-                return Number(train1.departureTime) - Number(train2.departureTime);
-            });
         } catch (error) {
             console.error("Error fetching train data:", error);
             throw error;
@@ -116,11 +114,16 @@ export async function getTrainData() {
     await getTrainList(formatDate(presentDate, false));
     await getTrainList(formatDate(presentDate, true));
 
+    trainList.sort(function (train1, train2) {
+        return Number(train1.departureTime) - Number(train2.departureTime);
+    });
+
     function isAnSBahn(train: train): boolean {
         return train.trainLine[0] === "S";
     }
     function isTowardsStuttgart(train: train): boolean {
-        return train.trainFinalStop === "Stuttgart Schwabstr.";
+        // return train.trainStops.includes("Bietigheim-Bissingen");
+        return train.trainStops.includes("Stuttgart Schwabstr.");
     }
     function isInTheFuture(train: train): boolean {
         const minutes: number = presentDate.getMinutes();
@@ -150,8 +153,8 @@ export async function getTrainData() {
 
     trainList = trainList.filter(isAnSBahn).filter(isTowardsStuttgart).filter(isInTheFuture);
 
-    const resultTrainList: string[] = trainList.map((train) => makeTrainToString(train));
-    const resultSecondHalf: string = resultTrainList.splice(0, 5).join("\n");
+    const resultTrainList: string[] = trainList.splice(0, 5).map((train) => makeTrainToString(train));
+    const resultSecondHalf: string = resultTrainList.join("\n");
     const resultFirstHalf: string = "Die nächsten S-Bahnen Richtung Stuttgart sind: \n";
 
     return resultFirstHalf + resultSecondHalf;
