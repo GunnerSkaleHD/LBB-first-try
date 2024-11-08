@@ -39,7 +39,7 @@ export async function getTrainData() {
         };
     }
 
-    function formatDate(date: Date, secondRequest: boolean) {
+    function formatDate(date: Date) {
         let year: number = date.getFullYear();
         let month: number = date.getMonth() + 1;
         let day: number = date.getDate();
@@ -48,9 +48,6 @@ export async function getTrainData() {
         let dayZero: string = "";
         let hourZero: string = "";
 
-        if (secondRequest) {
-            hour++;
-        }
         if (month.toString().length === 1) {
             monthZero = "0";
         }
@@ -64,18 +61,22 @@ export async function getTrainData() {
         return year.toString()[2] + year.toString()[3] + monthZero + month.toString() + dayZero + day.toString() + "/" + hourZero + hour.toString();
     }
 
-    const presentDate: Date = new Date();
+    const pastDate: Date = new Date();
+    const presentDate: Date = new Date(pastDate.getTime() + 3600000);
+    const nextHourDate: Date = new Date(presentDate.getTime() + 3600000);
+
+    // console.log(presentDate);
+    // console.log(nextHourDate);
 
     interface train {
-        departureTime: string;
+        departureTime: Date;
         trainLine: string;
         trainStops: string[];
         trainFinalStop: string;
     }
 
-    let trainList: train[] = [];
-
-    async function getTrainList(formatedDateAndTime: string) {
+    async function getTrainList(date: Date) {
+        let formatedDateAndTime: string = formatDate(date);
         const fetchLink: string = "https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1/plan/08000235/" + formatedDateAndTime;
         try {
             const response = await fetch(fetchLink, APIOptions);
@@ -84,14 +85,22 @@ export async function getTrainData() {
             const body = await response.text();
             const parser = new XMLParser(options);
             const output: Timetable = parser.parse(body);
-
+            let trainList: train[] = [];
             const departureInfo: string = "@_pt";
             const trainLineType: string = "@_c";
             const trainLineNumber: string = "@_l";
             const scheduledStops: string = "@_ppth";
 
             for (let trainInfo of output.timetable.s) {
-                let departureTime: string = trainInfo.dp[departureInfo].substring(trainInfo.dp[departureInfo].length - 4);
+                let departureYear: string = "20" + trainInfo.dp[departureInfo].substring(0, 2);
+                let departureMonth: string = trainInfo.dp[departureInfo].substring(2, 4);
+                let departureDay: string = trainInfo.dp[departureInfo].substring(4, 6);
+                let departureHour: string = trainInfo.dp[departureInfo].substring(6, 8);
+                let departureMinute: string = trainInfo.dp[departureInfo].substring(8, 10);
+                let departureTime: Date = new Date(
+                    departureYear + "-" + departureMonth + "-" + departureDay + "T" + departureHour + ":" + departureMinute + ":" + "00"
+                );
+
                 let trainLine: string = trainInfo.tl[trainLineType] + trainInfo.dp[trainLineNumber];
                 let trainStops: string[] = trainInfo.dp[scheduledStops].split("|");
                 let trainFinalStop: string = trainStops[trainStops.length - 1];
@@ -105,19 +114,17 @@ export async function getTrainData() {
 
                 trainList.push(currentTrain);
             }
+            return trainList;
         } catch (error) {
             console.error("Error fetching train data:", error);
             throw error;
         }
     }
 
-    // const a = [...(await getTrainList()), ...(await getTrainList())]
-
-    await getTrainList(formatDate(presentDate, false));
-    await getTrainList(formatDate(presentDate, true));
+    let trainList: train[] = [...(await getTrainList(presentDate)), ...(await getTrainList(nextHourDate))];
 
     trainList.sort(function (train1, train2) {
-        return Number(train1.departureTime) - Number(train2.departureTime);
+        return train1.departureTime.getTime() - +train2.departureTime.getTime();
     });
 
     function isAnSBahn(train: train): boolean {
@@ -128,26 +135,28 @@ export async function getTrainData() {
         return train.trainStops.includes("Stuttgart Schwabstr.");
     }
     function isInTheFuture(train: train): boolean {
-        const minutes: number = presentDate.getMinutes();
-        const hour: number = presentDate.getHours();
-        if (Number(train.departureTime[0] + train.departureTime[1]) === hour + 1) {
-            return true;
-        } else {
-            return (
-                minutes < Number(train.departureTime[2] + train.departureTime[3]) && hour === Number(train.departureTime[0] + train.departureTime[1])
-            );
-        }
+        return pastDate.getTime() < train.departureTime.getTime();
     }
 
     function makeTrainToString(train: train): string {
+        let minutesZero: string = "";
+        let hoursZero: string = "";
+
+        if (train.departureTime.getHours().toString().length === 1) {
+            hoursZero = "0";
+        }
+        if (train.departureTime.getMinutes().toString().length === 1) {
+            minutesZero = "0";
+        }
+
         return (
             train.trainLine +
             " " +
-            train.departureTime[0] +
-            train.departureTime[1] +
+            hoursZero +
+            train.departureTime.getHours().toString() +
             ":" +
-            train.departureTime[2] +
-            train.departureTime[3] +
+            minutesZero +
+            train.departureTime.getMinutes().toString() +
             " Uhr Richtung " +
             train.trainFinalStop
         );
@@ -156,6 +165,7 @@ export async function getTrainData() {
     trainList = trainList.filter(isAnSBahn).filter(isTowardsStuttgart).filter(isInTheFuture);
 
     const resultTrainList: string[] = trainList.splice(0, 5).map((train) => makeTrainToString(train));
+
     const resultSecondHalf: string = resultTrainList.join("\n");
     const resultFirstHalf: string = "Die nächsten S-Bahnen Richtung Stuttgart sind: \n";
 
