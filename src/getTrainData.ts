@@ -1,6 +1,7 @@
 import("node-fetch");
 import { XMLParser } from "fast-xml-parser";
-import { formatDate, isAnSBahn, isInTheFuture, isTowardsStuttgart, makeTrainToString, pastDate, presentDate, nextHourDate } from "./helpers";
+import { formatDate, isAnSBahn, isInTheFuture, isTowardsStuttgart, makeTrainToString, train } from "./helpers";
+import { pastDate, presentDate, nextHourDate } from "./dates";
 
 export async function getTrainData() {
     const APIOptions = {
@@ -42,13 +43,6 @@ export async function getTrainData() {
 
     // console.log(presentDate);
     // console.log(nextHourDate);
-
-    interface train {
-        departureTime: Date;
-        trainLine: string;
-        trainStops: string[];
-        trainFinalStop: string;
-    }
 
     async function getTrainList(date: Date) {
         let formatedDateAndTime: string = formatDate(date);
