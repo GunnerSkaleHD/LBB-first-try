@@ -95,12 +95,11 @@ export async function getTrainData() {
     trainList.sort(function (train1, train2) {
         return train1.departureTime.getTime() - +train2.departureTime.getTime();
     });
-    console.log(trainList);
     trainList = trainList.filter(isAnSBahn).filter(isTowardsStuttgart).filter(isInTheFuture);
 
     const resultTrainList: string[] = trainList.splice(0, 5).map((train) => makeTrainToString(train));
-
     const resultSecondHalf: string = resultTrainList.join("\n");
     const resultFirstHalf: string = "Die nächsten S-Bahnen Richtung Stuttgart sind: \n";
+
     return resultFirstHalf + resultSecondHalf;
 }
