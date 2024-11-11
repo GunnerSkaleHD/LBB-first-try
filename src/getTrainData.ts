@@ -66,8 +66,15 @@ export async function getTrainData() {
                 let departureDay: string = trainInfo.dp[departureInfo].substring(4, 6);
                 let departureHour: string = trainInfo.dp[departureInfo].substring(6, 8);
                 let departureMinute: string = trainInfo.dp[departureInfo].substring(8, 10);
+
                 let departureTime: Date = new Date(
-                    departureYear + "-" + departureMonth + "-" + departureDay + "T" + departureHour + ":" + departureMinute + ":" + "00"
+                    Number(departureYear),
+                    Number(departureMonth) - 1,
+                    Number(departureDay),
+                    Number(departureHour),
+                    Number(departureMinute),
+                    0,
+                    0
                 );
 
                 let trainLine: string = trainInfo.tl[trainLineType] + trainInfo.dp[trainLineNumber];
@@ -93,7 +100,7 @@ export async function getTrainData() {
     let trainList: train[] = [...(await getTrainList(presentDate)), ...(await getTrainList(nextHourDate))];
 
     trainList.sort(function (train1, train2) {
-        return train1.departureTime.getTime() - +train2.departureTime.getTime();
+        return train1.departureTime.getTime() - train2.departureTime.getTime();
     });
     trainList = trainList.filter(isAnSBahn).filter(isTowardsStuttgart).filter(isInTheFuture);
 

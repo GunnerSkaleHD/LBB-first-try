@@ -1,4 +1,4 @@
-import { pastDate } from "./dates";
+import { presentDate } from "./dates";
 export interface train {
     departureTime: Date;
     trainLine: string;
@@ -35,17 +35,20 @@ export function isTowardsStuttgart(train: train): boolean {
     return train.trainStops.includes("Stuttgart Schwabstr.");
 }
 export function isInTheFuture(train: train): boolean {
-    return pastDate.getTime() < train.departureTime.getTime();
+    return presentDate.getTime() < train.departureTime.getTime();
 }
 
 export function makeTrainToString(train: train): string {
     let minutesZero: string = "";
     let hoursZero: string = "";
 
-    if (train.departureTime.getHours().toString().length === 1) {
+    let trainDepartureHour: number = train.departureTime.getHours();
+    let trainDepartureMinute: number = train.departureTime.getMinutes();
+
+    if (trainDepartureHour.toString().length === 1) {
         hoursZero = "0";
     }
-    if (train.departureTime.getMinutes().toString().length === 1) {
+    if (trainDepartureMinute.toString().length === 1) {
         minutesZero = "0";
     }
 
