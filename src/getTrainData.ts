@@ -102,6 +102,5 @@ export async function getTrainData() {
 
     const resultSecondHalf: string = resultTrainList.join("\n");
     const resultFirstHalf: string = "Die nächsten S-Bahnen Richtung Stuttgart sind: \n";
-    console.log(resultSecondHalf);
     return resultFirstHalf + resultSecondHalf;
 }
