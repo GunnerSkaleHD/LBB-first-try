@@ -2,12 +2,11 @@ import { App } from "@slack/bolt";
 import { getTrainData } from "./getTrainData";
 import "dotenv/config";
 
-// Initializes your app with your bot token and signing secret
 const app = new App({
     token: process.env.SLACK_BOT_TOKEN,
     signingSecret: process.env.SLACK_SIGNING_SECRET,
-    socketMode: true, // add this
-    appToken: process.env.SLACK_APP_TOKEN, // add this
+    socketMode: true,
+    appToken: process.env.SLACK_APP_TOKEN,
 });
 
 app.event("app_mention", async ({ event, context, client, say }) => {
@@ -21,15 +20,9 @@ app.event("app_mention", async ({ event, context, client, say }) => {
         console.error(error);
     }
 });
-getTrainData()
-    .then((result) => {})
-    .catch((error) => {
-        console.error(error);
-    });
 
 (async () => {
-    // Start your app
     await app.start();
 
-    console.log("⚡️ Bolt app is running!");
+    console.log("⚡️ IWantToGoHome app is running!");
 })();
