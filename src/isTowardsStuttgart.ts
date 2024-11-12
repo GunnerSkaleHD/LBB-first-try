@@ -1,4 +1,4 @@
-import { train } from "./intefacetrain";
+import { train } from "./interfaceTrain";
 
 export function isTowardsStuttgart(train: train): boolean {
     // return train.trainStops.includes("Bietigheim-Bissingen");

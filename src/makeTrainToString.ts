@@ -1,4 +1,4 @@
-import { train } from "./intefacetrain";
+import { train } from "./interfaceTrain";
 
 export function makeTrainToString(train: train): string {
     let minutesZero: string = "";

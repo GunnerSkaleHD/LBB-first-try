@@ -1,10 +1,10 @@
-import { test, expect } from "vitest";
-import { makeTrainToString } from "./makeTrainToString";
+import { test, assert } from "vitest";
 import { train } from "./interfaceTrain";
+import { isInTheFuture } from "./isInTheFuture";
 
-test("Takes train object and makes string out of it", () => {
+test("Checks if train hasn't already left the station", () => {
     const sbahn: train = {
-        departureTime: new Date(2024, 0, 20, 12, 0, 0, 0),
+        departureTime: new Date(5000, 0, 20, 12, 0, 0, 0),
         trainLine: "S4",
         trainStops: [
             "Kornwestheim Pbf",
@@ -19,5 +19,5 @@ test("Takes train object and makes string out of it", () => {
         trainFinalStop: "Stuttgart Schwabstr.",
     };
 
-    expect(makeTrainToString(sbahn)).toEqual("S4 12:00 Uhr Richtung Stuttgart Schwabstr.");
+    assert.isTrue(isInTheFuture(sbahn));
 });
