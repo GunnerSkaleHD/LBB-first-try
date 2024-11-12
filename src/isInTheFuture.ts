@@ -1,4 +1,4 @@
-import { train } from "./interfaceTrain";
+import { train } from "./interfaces";
 
 export function isInTheFuture(train: train): boolean {
     const compareDate: Date = new Date();

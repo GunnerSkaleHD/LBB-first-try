@@ -1,46 +1,26 @@
 import("node-fetch");
 import { XMLParser } from "fast-xml-parser";
 import { formatDate } from "./formatDate";
-import { train } from "./interfaceTrain";
-
-const APIOptions = {
-    method: "GET",
-    headers: {
-        "DB-Client-Id": "6d8990a55f6ad319e4bcc664d2a26be8",
-        "DB-Api-Key": "23d8111fab821ddb070796f82ab3516e",
-        accept: "application/xml",
-    },
-};
-
-const options = {
-    ignoreAttributes: false,
-    attributeNamePrefix: "@_",
-    allowBooleanAttributes: true,
-    ignoreDeclaration: true,
-    isArray: (name: string, jpath: string, isLeafNode: boolean, isAttribute: boolean) => jpath === "timetable.s",
-};
-
-interface Timetable {
-    timetable: {
-        s: TimetableEntry[];
-    };
-}
-
-interface TimetableEntry {
-    tl: TrainData;
-    dp: {
-        "@_ppth": string;
-        "@_pt": string;
-        "@_l": string;
-    };
-}
-
-interface TrainData {
-    "@_c": string;
-    "@_l": string;
-}
+import { train, Timetable, TimetableEntry, TrainData } from "./interfaces";
 
 export async function getTrainList(date: Date) {
+    const APIOptions = {
+        method: "GET",
+        headers: {
+            "DB-Client-Id": "6d8990a55f6ad319e4bcc664d2a26be8",
+            "DB-Api-Key": "23d8111fab821ddb070796f82ab3516e",
+            accept: "application/xml",
+        },
+    };
+
+    const options = {
+        ignoreAttributes: false,
+        attributeNamePrefix: "@_",
+        allowBooleanAttributes: true,
+        ignoreDeclaration: true,
+        isArray: (name: string, jpath: string, isLeafNode: boolean, isAttribute: boolean) => jpath === "timetable.s",
+    };
+
     let formatedDateAndTime: string = formatDate(date);
     const fetchLink: string = "https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1/plan/08000235/" + formatedDateAndTime;
     try {

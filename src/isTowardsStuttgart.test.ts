@@ -1,5 +1,5 @@
 import { test, assert } from "vitest";
-import { train } from "./interfaceTrain";
+import { train } from "./interfaces";
 import { isTowardsStuttgart } from "./isTowardsStuttgart";
 
 test("Checks if train is leaving towards Stuttgart", () => {

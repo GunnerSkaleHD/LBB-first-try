@@ -1,5 +1,5 @@
 import { test, assert, vi } from "vitest";
-import { train } from "./interfaceTrain";
+import { train } from "./interfaces";
 import { isInTheFuture } from "./isInTheFuture";
 
 test("Checks if train hasn't already left the station", () => {

@@ -1,5 +1,5 @@
 import { isAnSBahn } from "./isAnSbahn";
-import { train } from "./interfaceTrain";
+import { train } from "./interfaces";
 import { test, assert } from "vitest";
 
 test("return true for S-Bahn", () => {

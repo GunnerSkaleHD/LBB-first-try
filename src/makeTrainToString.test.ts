@@ -1,6 +1,6 @@
 import { test, expect } from "vitest";
 import { makeTrainToString } from "./makeTrainToString";
-import { train } from "./interfaceTrain";
+import { train } from "./interfaces";
 
 test("Takes train object and makes string out of it", () => {
     const sbahn: train = {
