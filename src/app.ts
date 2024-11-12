@@ -9,15 +9,32 @@ const app = new App({
     appToken: process.env.SLACK_APP_TOKEN,
 });
 
-app.event("app_mention", async ({ event, context, client, say }) => {
-    try {
-        await client.chat.postEphemeral({
-            channel: event.channel,
-            user: event.user,
-            text: await getTrainData(),
-        });
-    } catch (error) {
-        console.error(error);
+// app.event("app_mention", async ({ event, context, client }) => {
+//     console.log("It worked");
+//     try {
+//         // Send the ephemeral message with train data
+//         await client.chat.postEphemeral({
+//             channel: event.channel,
+//             user: event.user,
+//             text: await getTrainData(),
+//         });
+//     } catch (error) {
+//         console.error(error);
+//     }
+// });
+
+app.message(async ({ message, event, context, say, client }) => {
+    if (message.channel_type === "im") {
+        try {
+            if (message.text && message.text.includes(`<@${context.botUserId}>`)) {
+                await client.chat.postMessage({
+                    channel: message.channel,
+                    text: await getTrainData(),
+                });
+            }
+        } catch (error) {
+            console.error(error);
+        }
     }
 });
 

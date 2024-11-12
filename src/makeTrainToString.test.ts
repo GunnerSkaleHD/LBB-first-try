@@ -1,5 +1,10 @@
 import { test, expect, assert, vi } from "vitest";
-import { train, formatDate, isAnSBahn, makeTrainToString, isInTheFuture, isTowardsStuttgart } from "./helpers";
+import { makeTrainToString } from "./makeTrainToString";
+import { isInTheFuture } from "./isInTheFuture";
+import { isTowardsStuttgart } from "./isTowardsStuttgart";
+import { isAnSBahn } from "./isAnSbahn";
+import { formatDate } from "./formatDate";
+import { train } from "./intefacetrain";
 
 test("expect the date to be formated to yymmdd/hh", () => {
     const date: Date = new Date(2024, 0, 20, 12, 0, 0, 0);

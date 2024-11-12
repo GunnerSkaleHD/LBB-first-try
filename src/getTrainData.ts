@@ -1,8 +1,13 @@
-import { isAnSBahn, isInTheFuture, isTowardsStuttgart, makeTrainToString, train } from "./helpers";
-import { presentDate, nextHourDate } from "./dates";
+import { makeTrainToString } from "./makeTrainToString";
+import { isInTheFuture } from "./isInTheFuture";
+import { isTowardsStuttgart } from "./isTowardsStuttgart";
+import { isAnSBahn } from "./isAnSbahn";
+import { train } from "./intefacetrain";
 import { getTrainList } from "./getTrainList";
 
 export async function getTrainData() {
+    const presentDate: Date = new Date();
+    const nextHourDate: Date = new Date(presentDate.getTime() + 3600000);
     let trainList: train[] = [...(await getTrainList(presentDate)), ...(await getTrainList(nextHourDate))];
 
     trainList.sort(function (train1, train2) {

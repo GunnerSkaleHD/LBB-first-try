@@ -1,6 +1,7 @@
 import("node-fetch");
 import { XMLParser } from "fast-xml-parser";
-import { formatDate, train } from "./helpers";
+import { formatDate } from "./formatDate";
+import { train } from "./intefacetrain";
 
 const APIOptions = {
     method: "GET",
