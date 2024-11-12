@@ -17,5 +17,15 @@ export function formatDate(date: Date) {
         hourZero = "0";
     }
 
-    return year.toString()[2] + year.toString()[3] + monthZero + month.toString() + dayZero + day.toString() + "/" + hourZero + hour.toString();
+    return (
+        year.toString()[year.toString().length - 2] +
+        year.toString()[year.toString().length - 1] +
+        monthZero +
+        month.toString() +
+        dayZero +
+        day.toString() +
+        "/" +
+        hourZero +
+        hour.toString()
+    );
 }

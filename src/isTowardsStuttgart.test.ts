@@ -20,3 +20,13 @@ test("Checks if train is leaving towards Stuttgart", () => {
     };
     assert.isTrue(isTowardsStuttgart(sbahn));
 });
+
+test("Checks if train is leaving towards Stuttgart", () => {
+    const sbahn: train = {
+        departureTime: new Date(2024, 0, 20, 12, 0, 0, 0),
+        trainLine: "S5",
+        trainStops: ["Asperg", "Tamm(Württ)", "Bietigheim-Bissingen"],
+        trainFinalStop: "Bietigheim-Bissingen",
+    };
+    assert.isFalse(isTowardsStuttgart(sbahn));
+});

@@ -20,3 +20,13 @@ test("return true for S-Bahn", () => {
     };
     assert.isTrue(isAnSBahn(sbahn));
 });
+
+test("return false for non Sbahn trains", () => {
+    const regio: train = {
+        departureTime: new Date(),
+        trainLine: "RE1",
+        trainStops: ["Ingolstadt Hbf", "Pfaffenhofen an der Ilm", "Alershausen"],
+        trainFinalStop: "München Hbf",
+    };
+    assert.isFalse(isAnSBahn(regio));
+});

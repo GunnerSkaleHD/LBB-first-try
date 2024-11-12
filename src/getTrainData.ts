@@ -9,7 +9,7 @@ export async function getTrainData() {
     const presentDate: Date = new Date();
     const nextHourDate: Date = new Date(presentDate.getTime() + 3600000);
     let trainList: train[] = [...(await getTrainList(presentDate)), ...(await getTrainList(nextHourDate))];
-
+    console.log(trainList);
     trainList.sort(function (train1, train2) {
         return train1.departureTime.getTime() - train2.departureTime.getTime();
     });
