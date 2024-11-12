@@ -2,7 +2,7 @@ import { makeTrainToString } from "./makeTrainToString";
 import { isInTheFuture } from "./isInTheFuture";
 import { isTowardsStuttgart } from "./isTowardsStuttgart";
 import { isAnSBahn } from "./isAnSbahn";
-import { train } from "./intefacetrain";
+import { train } from "./interfaceTrain";
 import { getTrainList } from "./getTrainList";
 
 export async function getTrainData() {
