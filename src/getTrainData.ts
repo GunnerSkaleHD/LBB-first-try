@@ -14,16 +14,21 @@ export async function getTrainData(direction: string) {
     trainList.sort(function (train1, train2) {
         return train1.departureTime.getTime() - train2.departureTime.getTime();
     });
+
+    var textDirection: string = "";
+
     if (direction == "stuttgart") {
         trainList = trainList.filter(isAnSBahn).filter(isTowardsStuttgart).filter(isInTheFuture);
+        textDirection = "Stuttgart";
     }
     if (direction == "bietigheim") {
         trainList = trainList.filter(isAnSBahn).filter(isTowardsBietigheim).filter(isInTheFuture);
+        textDirection = "Bietigheim";
     }
 
     const resultTrainList: string[] = trainList.splice(0, 5).map((train) => makeTrainToString(train));
     const resultSecondHalf: string = resultTrainList.join("\n");
-    const resultFirstHalf: string = "Die nächsten S-Bahnen Richtung Stuttgart sind: \n";
+    const resultFirstHalf: string = `Die nächsten S-Bahnen Richtung ${textDirection} sind: \n`;
 
     return resultFirstHalf + resultSecondHalf;
 }

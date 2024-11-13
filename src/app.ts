@@ -23,7 +23,7 @@ app.message(async ({ message, context, client }) => {
                             type: "section",
                             text: {
                                 type: "mrkdwn",
-                                text: "Choose a train direction.",
+                                text: "Choose a direction you want to go.",
                             },
                         },
                         {
@@ -62,9 +62,14 @@ app.action("stuttgart_button", async ({ ack, body, client }) => {
     await ack();
     const trainData = await getTrainData("stuttgart");
 
+    await client.chat.delete({
+        channel: body.channel.id,
+        ts: body.message.ts,
+    });
+
     await client.chat.postMessage({
         channel: body.user.id,
-        text: `Train data for Stuttgart: ${trainData}`,
+        text: trainData,
     });
 });
 
@@ -72,9 +77,14 @@ app.action("bietigheim_button", async ({ ack, body, client }) => {
     await ack();
     const trainData = await getTrainData("bietigheim");
 
+    await client.chat.delete({
+        channel: body.channel.id,
+        ts: body.message.ts,
+    });
+
     await client.chat.postMessage({
         channel: body.user.id,
-        text: `Train data for Bietigheim: ${trainData}`,
+        text: trainData,
     });
 });
 
