@@ -2,6 +2,7 @@ import { makeTrainToString } from "./makeTrainToString";
 import { isInTheFuture } from "./isInTheFuture";
 import { isTowardsStuttgart } from "./isTowardsStuttgart";
 import { isTowardsBietigheim } from "./isTowardsBietigheim";
+import { isTowardsMarbach } from "./isTowardsMarbach";
 import { isAnSBahn } from "./isAnSbahn";
 import { train } from "./interfaces";
 import { getTrainList } from "./getTrainList";
@@ -13,7 +14,9 @@ export async function getTrainData(direction: string) {
     trainList.sort(function (train1, train2) {
         return train1.departureTime.getTime() - train2.departureTime.getTime();
     });
-    console.log(trainList);
+
+    // console.log(trainList);
+
     var textDirection: string = "";
 
     if (direction == "stuttgart") {
@@ -23,6 +26,10 @@ export async function getTrainData(direction: string) {
     if (direction == "bietigheim") {
         trainList = trainList.filter(isAnSBahn).filter(isTowardsBietigheim).filter(isInTheFuture);
         textDirection = "Bietigheim";
+    }
+    if (direction == "marbach") {
+        trainList = trainList.filter(isAnSBahn).filter(isTowardsMarbach).filter(isInTheFuture);
+        textDirection = "Marbach";
     }
 
     const resultTrainList: string[] = trainList.splice(0, 5).map((train) => makeTrainToString(train));

@@ -1,4 +1,4 @@
-import { App } from "@slack/bolt";
+import { App, BlockAction, ButtonAction, Middleware, SlackActionMiddlewareArgs } from "@slack/bolt";
 import { getTrainData } from "./getTrainData";
 import dotenv from "dotenv";
 
@@ -11,10 +11,15 @@ const app = new App({
     appToken: process.env.SLACK_APP_TOKEN,
 });
 
+// Type guard to check message type and ensure it has text
+const isMessageWithText = (message: any): message is { type: "message"; text: string; channel: string } => {
+    return message.type === "message" && typeof message.text === "string";
+};
+
 app.message(async ({ message, context, client }) => {
-    if (message.channel_type === "im") {
+    if ("channel_type" in message && message.channel_type === "im") {
         try {
-            if (message.text && message.text.includes(`<@${context.botUserId}>`)) {
+            if (isMessageWithText(message) && message.text.includes(`<@${context.botUserId}>`)) {
                 await client.chat.postMessage({
                     channel: message.channel,
                     text: "Choose train direction:",
@@ -47,6 +52,15 @@ app.message(async ({ message, context, client }) => {
                                     action_id: "bietigheim_button",
                                     value: "bietigheim",
                                 },
+                                {
+                                    type: "button",
+                                    text: {
+                                        type: "plain_text",
+                                        text: "Marbach",
+                                    },
+                                    action_id: "marbach_button",
+                                    value: "marbach",
+                                },
                             ],
                         },
                     ],
@@ -58,35 +72,31 @@ app.message(async ({ message, context, client }) => {
     }
 });
 
-app.action("stuttgart_button", async ({ ack, body, client }) => {
-    await ack();
-    const trainData = await getTrainData("stuttgart");
+// Define a function to handle button actions
+function handleAction(direction: string): Middleware<SlackActionMiddlewareArgs<BlockAction<ButtonAction>>> {
+    return async ({ ack, body, client }) => {
+        await ack();
+        const actionBody = body as { user: { id: string }; channel: { id: string }; message: { ts: string | undefined } };
+        const trainData = await getTrainData(direction);
 
-    await client.chat.delete({
-        channel: body.channel.id,
-        ts: body.message.ts,
-    });
+        if (actionBody.channel.id && actionBody.message.ts) {
+            await client.chat.delete({
+                channel: actionBody.channel.id,
+                ts: actionBody.message.ts,
+            });
 
-    await client.chat.postMessage({
-        channel: body.user.id,
-        text: trainData,
-    });
-});
+            await client.chat.postMessage({
+                channel: actionBody.user.id,
+                text: trainData,
+            });
+        }
+    };
+}
 
-app.action("bietigheim_button", async ({ ack, body, client }) => {
-    await ack();
-    const trainData = await getTrainData("bietigheim");
-
-    await client.chat.delete({
-        channel: body.channel.id,
-        ts: body.message.ts,
-    });
-
-    await client.chat.postMessage({
-        channel: body.user.id,
-        text: trainData,
-    });
-});
+// Register action handlers
+app.action("stuttgart_button", handleAction("stuttgart"));
+app.action("bietigheim_button", handleAction("bietigheim"));
+app.action("marbach_button", handleAction("marbach"));
 
 (async () => {
     await app.start();
