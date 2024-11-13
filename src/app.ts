@@ -135,3 +135,10 @@ app.action<BlockAction>("close_button", async ({ ack, body, client }) => {
     await app.start();
     console.log("⚡️ IWantToGoHome app is running!");
 })();
+
+/*
+Neues porsche customer repo
+isTowards function zusammenführen
+Besseres Aussehen von der Textausgabe in Slack
+
+*/
