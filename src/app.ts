@@ -1,6 +1,8 @@
 import { App } from "@slack/bolt";
 import { getTrainData } from "./getTrainData";
-import "dotenv/config";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = new App({
     token: process.env.SLACK_BOT_TOKEN,
@@ -9,27 +11,45 @@ const app = new App({
     appToken: process.env.SLACK_APP_TOKEN,
 });
 
-// app.event("app_mention", async ({ event, context, client }) => {
-//     console.log("It worked");
-//     try {
-//         // Send the ephemeral message with train data
-//         await client.chat.postEphemeral({
-//             channel: event.channel,
-//             user: event.user,
-//             text: await getTrainData(),
-//         });
-//     } catch (error) {
-//         console.error(error);
-//     }
-// });
-
-app.message(async ({ message, event, context, say, client }) => {
+app.message(async ({ message, context, client }) => {
     if (message.channel_type === "im") {
         try {
             if (message.text && message.text.includes(`<@${context.botUserId}>`)) {
                 await client.chat.postMessage({
                     channel: message.channel,
-                    text: await getTrainData(),
+                    text: "Choose train direction:",
+                    blocks: [
+                        {
+                            type: "section",
+                            text: {
+                                type: "mrkdwn",
+                                text: "Choose a train direction.",
+                            },
+                        },
+                        {
+                            type: "actions",
+                            elements: [
+                                {
+                                    type: "button",
+                                    text: {
+                                        type: "plain_text",
+                                        text: "Stuttgart",
+                                    },
+                                    action_id: "stuttgart_button",
+                                    value: "stuttgart",
+                                },
+                                {
+                                    type: "button",
+                                    text: {
+                                        type: "plain_text",
+                                        text: "Bietigheim",
+                                    },
+                                    action_id: "bietigheim_button",
+                                    value: "bietigheim",
+                                },
+                            ],
+                        },
+                    ],
                 });
             }
         } catch (error) {
@@ -38,8 +58,27 @@ app.message(async ({ message, event, context, say, client }) => {
     }
 });
 
+app.action("stuttgart_button", async ({ ack, body, client }) => {
+    await ack();
+    const trainData = await getTrainData("stuttgart");
+
+    await client.chat.postMessage({
+        channel: body.user.id,
+        text: `Train data for Stuttgart: ${trainData}`,
+    });
+});
+
+app.action("bietigheim_button", async ({ ack, body, client }) => {
+    await ack();
+    const trainData = await getTrainData("bietigheim");
+
+    await client.chat.postMessage({
+        channel: body.user.id,
+        text: `Train data for Bietigheim: ${trainData}`,
+    });
+});
+
 (async () => {
     await app.start();
-
     console.log("⚡️ IWantToGoHome app is running!");
 })();
