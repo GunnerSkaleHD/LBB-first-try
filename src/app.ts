@@ -23,7 +23,7 @@ app.message(async ({ message, context, client }) => {
                             type: "section",
                             text: {
                                 type: "mrkdwn",
-                                text: "Choose a direction you want to go.",
+                                text: "Choose a S-Bahn direction",
                             },
                         },
                         {
