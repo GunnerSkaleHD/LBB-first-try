@@ -1,7 +1,7 @@
 import("node-fetch");
 import { XMLParser } from "fast-xml-parser";
 import { formatDate } from "./formatDate";
-import { train, Timetable, TimetableEntry, TrainData } from "./interfaces";
+import { train, Timetable } from "./interfaces";
 
 export async function getTrainList(date: Date) {
     const APIOptions = {

@@ -84,10 +84,32 @@ function handleAction(direction: string): Middleware<SlackActionMiddlewareArgs<B
                 channel: actionBody.channel.id,
                 ts: actionBody.message.ts,
             });
-
             await client.chat.postMessage({
                 channel: actionBody.user.id,
                 text: trainData,
+                blocks: [
+                    {
+                        type: "section",
+                        text: {
+                            type: "mrkdwn",
+                            text: trainData,
+                        },
+                    },
+                    {
+                        type: "actions",
+                        elements: [
+                            {
+                                type: "button",
+                                text: {
+                                    type: "plain_text",
+                                    text: "close",
+                                },
+                                action_id: "close_button",
+                                value: "closed",
+                            },
+                        ],
+                    },
+                ],
             });
         }
     };
@@ -98,6 +120,17 @@ app.action("stuttgart_button", handleAction("stuttgart"));
 app.action("bietigheim_button", handleAction("bietigheim"));
 app.action("marbach_button", handleAction("marbach"));
 
+app.action<BlockAction>("close_button", async ({ ack, body, client }) => {
+    await ack();
+    const actionBody = body as { user: { id: string }; channel: { id: string }; message: { ts: string | undefined } };
+
+    if (actionBody.channel.id && actionBody.message.ts) {
+        await client.chat.delete({
+            channel: actionBody.channel.id,
+            ts: actionBody.message.ts,
+        });
+    }
+});
 (async () => {
     await app.start();
     console.log("⚡️ IWantToGoHome app is running!");
